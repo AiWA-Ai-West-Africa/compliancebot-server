@@ -66,3 +66,9 @@ curl -X POST https://api.github.com/app-manifests/MANIFEST_CODE/conversions \
 - `pem` (private key)
 
 Use these in your `.env` or server configuration to finalize the app integration.
+
+---
+
+
+
+
