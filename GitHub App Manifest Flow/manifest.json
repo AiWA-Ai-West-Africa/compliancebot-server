@@ -1,0 +1,21 @@
+{
+  "name": "AiWA ComplianceBot",
+  "url": "https://aiwestafrica.com/compliancebot",
+  "hook_attributes": {
+    "url": "https://aiwestafrica.com/github/callback"
+  },
+  "redirect_url": "https://aiwestafrica.com/github/callback",
+  "public": false,
+  "default_permissions": {
+    "contents": "write",
+    "issues": "write",
+    "metadata": "read",
+    "pull_requests": "write"
+  },
+  "default_events": [
+    "pull_request",
+    "repository",
+    "installation",
+    "installation_repositories"
+  ]
+}
