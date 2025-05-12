@@ -1,0 +1,11 @@
+branchPattern: "^aiwa\\/[a-z0-9\\-]+(\\/.+)?"
+branchPatternMessage: "⚠️ Branch name `%BRANCH_NAME%` does not follow AiWA's global naming conventions. Please rename it to match `aiwa/feature-name` or `aiwa/type/feature-name`."
+commitMessagePattern: "^(feat|fix|docs|style|refactor|perf|test|chore)(\\([a-zA-Z0-9\\-]+\\))?: .{1,100}"
+commitMessagePatternMessage: "⚠️ Global: Commit message `%COMMIT_MESSAGE%` (SHA: `%COMMIT_SHA%`) does not follow Conventional Commits format."
+prTitleMinLength: 10
+# ... and so on for all your default settings
+ensureFiles:
+  "SECURITY.md": "Default global security policy..."
+  "CODE_OF_CONDUCT.md": "Default global Code of Conduct..."
+newRepoIssueTitle: "🚀 New Repository Global Setup Checklist"
+newRepoIssueBody: "Global checklist for new repositories..."
