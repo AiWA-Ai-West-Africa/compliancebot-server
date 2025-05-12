@@ -1,0 +1,686 @@
+  - name: Setup Node.js environment
+      uses: actions/setup-node@v3.9.1
+      with:
+        # Set always-auth in npmrc.
+        always-auth: # optional, default is false
+        # Version Spec of the version to use. Examples: 12.x, 10.15.1, >=10.15.0.
+        node-version: # optional
+        # File containing the version Spec of the version to use.  Examples: .nvmrc, .node-version, .tool-versions.
+        node-version-file: # optional
+        # Target architecture for Node to use. Examples: x86, x64. Will use system architecture by default.
+        architecture: # optional
+        # Set this option if you want the action to check for the latest available version that satisfies the version spec.
+        check-latest: # optional
+        # Optional registry to set up for auth. Will set the registry in a project level .npmrc and .yarnrc file, and set up auth to read in from env.NODE_AUTH_TOKEN.
+        registry-url: # optional
+        # Optional scope for authenticating against scoped registries. Will fall back to the repository owner when using the GitHub Packages registry (https://npm.pkg.github.com/).
+        scope: # optional
+        # Used to pull node distributions from node-versions. Since there's a default, this is typically not supplied by the user. When running this action on github.com, the default value is sufficient. When running on GHES, you can pass a personal access token for github.com if you are experiencing rate limiting.
+        token: # optional, default is ${{ github.server_url == 'https://github.com' && github.token || '' }}
+        # Used to specify a package manager for caching in the default directory. Supported values: npm, yarn, pnpm.
+        cache: # optional
+        # Used to specify the path to a dependency file: package-lock.json, yarn.lock, etc. Supports wildcards or a list of file names for caching multiple dependencies.
+        cache-dependency-path: # optional
+
+            - name: Cache
+  uses: actions/cache@v4.2.3
+  with:
+    # A list of files, directories, and wildcard patterns to cache and restore
+    path: 
+    # An explicit key for restoring and saving the cache
+    key: 
+    # An ordered multiline string listing the prefix-matched keys, that are used for restoring stale cache if no cache hit occurred for key. Note `cache-hit` returns false in this case.
+    restore-keys: # optional
+    # The chunk size used to split up large files during upload, in bytes
+    upload-chunk-size: # optional
+    # An optional boolean when enabled, allows windows runners to save or restore caches that can be restored or saved respectively on other platforms
+    enableCrossOsArchive: # optional, default is false
+    # Fail the workflow if cache entry is not found
+    fail-on-cache-miss: # optional, default is false
+    # Check if a cache entry exists for the given input(s) (key, restore-keys) without downloading the cache
+    lookup-only: # optional, default is false
+    # Run the post step to save the cache even if another step before fails
+    save-always: # optional, default is false
+
+
+            - name: WordPress Plugin Check
+  # You may pin to the exact commit or the version.
+  # uses: WordPress/plugin-check-action@70f38272b2beee386e973f319591baa2fc7dff16
+  uses: WordPress/plugin-check-action@v1.1.2
+  with:
+    # The GITHUB_TOKEN secret
+    repo-token: # optional, default is ${{ github.token }}
+    # Build directory
+    build-dir: # optional, default is ./
+    # Only run specific checks
+    checks: # optional, default is 
+    # Checks to exclude
+    exclude-checks: # optional, default is 
+    # Limit checks to specific categories
+    categories: # optional, default is 
+    # Exclude certain files from checks
+    exclude-files: # optional, default is 
+    # Exclude certain directories from checks
+    exclude-directories: # optional, default is 
+    # Error codes to ignore
+    ignore-codes: # optional, default is 
+    # Ignore warnings
+    ignore-warnings: # optional, default is false
+    # Ignore errors
+    ignore-errors: # optional, default is false
+    # Include experimental checks
+    include-experimental: # optional, default is false
+    # WordPress version to use
+    wp-version: # optional, default is latest
+    # Severity level
+    severity: # optional, default is 
+    # Error severity level
+    error-severity: # optional, default is 
+    # Warning severity level
+    warning-severity: # optional, default is 
+    # Include errors with lower severity than the threshold as other type.
+    include-low-severity-errors: # optional, default is 
+    # Include warnings with lower severity than the threshold as other type.
+    include-low-severity-warnings: # optional, default is 
+    # Slug to override the default
+    slug: # optional, default is 
+    # Treat everything as an error
+    strict: # optional, default is false
+          
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+# ESLint is a tool for identifying and reporting on patterns
+# found in ECMAScript/JavaScript code.
+# More details at https://github.com/eslint/eslint
+# and https://eslint.org
+
+name: ESLint
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches: [ "main" ]
+  schedule:
+    - cron: '19 23 * * 0'
+
+jobs:
+  eslint:
+    name: Run eslint scanning
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install ESLint
+        run: |
+          npm install eslint@8.10.0
+          npm install @microsoft/eslint-formatter-sarif@3.1.0
+
+      - name: Run ESLint
+        env:
+          SARIF_ESLINT_IGNORE_SUPPRESSED: "true"
+        run: npx eslint .
+          --config .eslintrc.js
+          --ext .js,.jsx,.ts,.tsx
+          --format @microsoft/eslint-formatter-sarif
+          --output-file eslint-results.sarif
+        continue-on-error: true
+
+      - name: Upload analysis results to GitHub
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: eslint-results.sarif
+          wait-for-processing: true# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+#
+# Run a Nexploit Scan
+# This action runs a new security scan in Nexploit, or reruns an existing one.
+# Build Secure Apps & APIs. Fast.
+# [NeuraLegion](https://www.neuralegion.com) is a powerful dynamic application & API security testing (DAST) platform that security teams trust and developers love.
+# Automatically Tests Every Aspect of Your Apps & APIs
+# Scans any target, whether Web Apps, APIs (REST. & SOAP, GraphQL & more), Web sockets or mobile, providing actionable reports
+# Seamlessly integrates with the Tools and Workflows You Already Use
+#
+# NeuraLegion works with your existing CI/CD pipelines – trigger scans on every commit, pull request or build with unit testing.
+# Spin-Up, Configure and Control Scans with Code
+# One file. One command. One scan. No UI needed.
+#
+# Super-Fast Scans
+#
+# Interacts with applications and APIs, instead of just crawling them and guessing.
+# Scans are fast as our AI-powered engine can understand application architecture and generate sophisticated and targeted attacks.
+#
+# No False Positives
+#
+# Stop chasing ghosts and wasting time. NeuraLegion doesn’t return false positives, so you can focus on releasing code.
+#
+# Comprehensive Security Testing
+#
+# NeuraLegion tests for all common vulnerabilities, such as SQL injection, CSRF, XSS, and XXE -- as well as uncommon vulnerabilities, such as business logic vulnerabilities.
+#
+# More information is available on NeuraLegion’s:
+# * [Website](https://www.neuralegion.com/)
+# * [Knowledge base](https://docs.neuralegion.com/docs/quickstart)
+# * [YouTube channel](https://www.youtube.com/channel/UCoIC0T1pmozq3eKLsUR2uUw)
+# * [GitHub Actions](https://github.com/marketplace?query=neuralegion+)
+#
+# Inputs
+#
+# name
+#
+# **Required**. Scan name.
+#
+# _Example:_ name: GitHub scan ${{ github.sha }}
+#
+# api_token
+#
+# **Required**. Your Nexploit API authorization token (key). You can generate it in the **Organization** section on [nexploit.app](https://nexploit.app/login). Find more information [here](https://kb.neuralegion.com/#/guide/np-web-ui/advanced-set-up/managing-org?id=managing-organization-apicli-authentication-tokens).
+#
+# _Example:_ api_token: ${{ secrets.NEXPLOIT_TOKEN }}
+#
+# restart_scan
+#
+# **Required** when restarting an existing scan by its ID. You can get the scan ID in the Scans section on [nexploit.app](https://nexploit.app/login).<br> Please make sure to only use the necessary parameters. Otherwise, you will get a response with the parameter usage requirements.
+#
+# _Example:_ restart_scan: ai3LG8DmVn9Rn1YeqCNRGQ)
+#
+# discovery_types
+#
+# **Required**. Array of discovery types. The following types are available:
+# * archive - uses an uploaded HAR-file for a scan
+# * crawler - uses a crawler to define the attack surface for a scan
+# * oas - uses an uploaded OpenAPI schema for a scan <br>
+# If no discovery type is specified, crawler is applied by default.
+#
+# _Example:_
+#
+# 
+yml
+# discovery_types: |
+#   [ "crawler", "archive" ]
+#
+
+#
+# file_id
+#
+# **Required** if the discovery type is set to archive or oas. ID of a HAR-file or an OpenAPI schema you want to use for a scan. You can get the ID of an uploaded HAR-file or an OpenAPI schema in the **Storage** section on [nexploit.app](https://nexploit.app/login).
+#
+# _Example:_
+#
+# 
+# FILE_ID=$(nexploit-cli archive:upload   \
+# --token ${{ secrets.NEXPLOIT_TOKEN }}   \
+# --discard true                          \
+# ./example.har)
+#
+
+#
+# crawler_urls
+#
+# **Required** if the discovery type is set to crawler. Target URLs to be used by the crawler to define the attack surface.
+#
+# _Example:_
+#
+# 
+# crawler_urls: |
+#   [ "http://vulnerable-bank.com" ]
+#
+
+#
+# hosts_filter
+#
+# **Required** when the the discovery type is set to archive. Allows selecting specific hosts for a scan.
+#
+# Outputs
+#
+# url
+#
+# Url of the resulting scan
+#
+# id
+#
+# ID of the created scan. This ID could then be used to restart the scan, or for the following GitHub actions:
+# * [Nexploit Wait for Issues](https://github.com/marketplace/actions/nexploit-wait-for-issues)
+# * [Nexploit Stop Scan](https://github.com/marketplace/actions/nexploit-stop-scan)
+#
+# Example usage
+#
+# Start a new scan with parameters
+#
+# 
+yml
+# steps:
+#     - name: Start Nexploit Scan
+#       id: start
+#       uses: NeuraLegion/run-scan@29ebd17b4fd6292ce7a238a59401668953b37fbe
+#       with:
+#         api_token: ${{ secrets.NEXPLOIT_TOKEN }}
+#         name: GitHub scan ${{ github.sha }}
+#         discovery_types: |
+#           [ "crawler", "archive" ]
+#         crawler_urls: |
+#           [ "http://vulnerable-bank.com" ]
+#         file_id: LiYknMYSdbSZbqgMaC9Sj
+#         hosts_filter: |
+#           [ ]
+#     - name: Get the output scan url
+#       run: echo "The scan was started on ${{ steps.start.outputs.url }}"
+#
+
+#
+# Restart an existing scan
+#
+# 
+yml
+# steps:
+#     - name: Start Nexploit Scan
+#       id: start
+#       uses: NeuraLegion/run-scan@29ebd17b4fd6292ce7a238a59401668953b37fbe
+#       with:
+#         api_token: ${{ secrets.NEXPLOIT_TOKEN }}
+#         name: GitHub scan ${{ github.sha }}
+#         restart_scan: ai3LG8DmVn9Rn1YeqCNRGQ
+#     - name: Get the output scan url
+#       run: echo "The scan was started on ${{ steps.start.outputs.url }}"
+
+
+name: "NeuraLegion"
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '44 16 * * 1'
+
+jobs:
+  neuralegion_scan:
+    runs-on: ubuntu-18.04
+    name: A job to run a Nexploit scan
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start Nexploit Scan 🏁
+        id: start
+        uses: NeuraLegion/run-scan@29ebd17b4fd6292ce7a238a59401668953b37fbe
+        with:
+          api_token: ${{ secrets.NEURALEGION_TOKEN }}
+          name: GitHub scan ${{ github.sha }}
+          discovery_types: |
+            [ "crawler" ]
+          crawler_urls: |
+            [ "https://brokencrystals.com" ] # ✏️ Update this to the url you wish to scan# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+# EthicalCheck addresses the critical need to continuously security test APIs in development and in production.
+
+# EthicalCheck provides the industry’s only free & automated API security testing service that uncovers security vulnerabilities using OWASP API list.
+# Developers relies on EthicalCheck to evaluate every update and release, ensuring that no APIs go to production with exploitable vulnerabilities.
+
+# You develop the application and API, we bring complete and continuous security testing to you, accelerating development.
+
+# Know your API and Applications are secure with EthicalCheck – our free & automated API security testing service.
+
+# How EthicalCheck works?
+# EthicalCheck functions in the following simple steps.
+# 1. Security Testing.
+# Provide your OpenAPI specification or start with a public Postman collection URL.
+# EthicalCheck instantly instrospects your API and creates a map of API endpoints for security testing.
+# It then automatically creates hundreds of security tests that are non-intrusive to comprehensively and completely test for authentication, authorizations, and OWASP bugs your API. The tests addresses the OWASP API Security categories including OAuth 2.0, JWT, Rate Limit etc.
+
+# 2. Reporting.
+# EthicalCheck generates security test report that includes all the tested endpoints, coverage graph, exceptions, and vulnerabilities.
+# Vulnerabilities are fully triaged, it contains CVSS score, severity, endpoint information, and OWASP tagging.
+
+
+# This is a starter workflow to help you get started with EthicalCheck Actions
+
+name: EthicalCheck-Workflow
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  # Customize trigger events based on your DevSecOps processes.
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '43 7 * * 1'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  Trigger_EthicalCheck:
+    permissions:
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+      actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
+    runs-on: ubuntu-latest
+
+    steps:
+       - name: EthicalCheck  Free & Automated API Security Testing Service
+         uses: apisec-inc/ethicalcheck-action@005fac321dd843682b1af6b72f30caaf9952c641
+         with:
+          # The OpenAPI Specification URL or Swagger Path or Public Postman collection URL.
+          oas-url: "http://netbanking.apisec.ai:8080/v2/api-docs"
+          # The email address to which the penetration test report will be sent.
+          email: "xxx@apisec.ai"
+          sarif-result-file: "ethicalcheck-results.sarif"
+
+       - name: Upload sarif file to repository
+         uses: github/codeql-action/upload-sarif@v3
+         with:
+          sarif_file: ./ethicalcheck-results.sarif
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+# PHPMD is a spin-off project of PHP Depend and
+# aims to be a PHP equivalent of the well known Java tool PMD.
+# What PHPMD does is: It takes a given PHP source code base
+# and look for several potential problems within that source.
+# These problems can be things like:
+#   Possible bugs
+#   Suboptimal code
+#   Overcomplicated expressions
+#   Unused parameters, methods, properties
+# More details at https://phpmd.org/
+
+name: PHPMD
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches: [ "main" ]
+  schedule:
+    - cron: '35 10 * * 2'
+
+permissions:
+  contents: read
+
+jobs:
+  PHPMD:
+    name: Run PHPMD scanning
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # for checkout to fetch code
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+      actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@aa1fe473f9c687b6fb896056d771232c0bc41161
+        with:
+          coverage: none
+          tools: phpmd
+
+      - name: Run PHPMD
+        run: phpmd . sarif codesize --reportfile phpmd-results.sarif
+        continue-on-error: true
+
+      - name: Upload analysis results to GitHub
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: phpmd-results.sarif
+          wait-for-processing: true
+
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+# lintr provides static code analysis for R.
+# It checks for adherence to a given style,
+# identifying syntax errors and possible semantic issues,
+# then reports them to you so you can take action.
+# More details at https://lintr.r-lib.org/
+
+name: lintr
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches: [ "main" ]
+  schedule:
+    - cron: '31 0 * * 5'
+
+permissions:
+  contents: read
+
+jobs:
+  lintr:
+    name: Run lintr scanning
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # for checkout to fetch code
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+      actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup R
+        uses: r-lib/actions/setup-r@4e1feaf90520ec1215d1882fdddfe3411c08e492
+
+      - name: Setup lintr
+        uses: r-lib/actions/setup-r-dependencies@4e1feaf90520ec1215d1882fdddfe3411c08e492
+        with:
+          extra-packages: lintr
+
+      - name: Run lintr
+        run: lintr::sarif_output(lintr::lint_dir("."), "lintr-results.sarif")
+        shell: Rscript {0}
+        continue-on-error: true
+
+      - name: Upload analysis results to GitHub
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: lintr-results.sarif
+          wait-for-processing: true
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+# This workflow requires that you have an existing account with codescan.io
+# For more information about configuring your workflow,
+# read our documentation at https://github.com/codescan-io/codescan-scanner-action
+name: CodeScan
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches: [ "main" ]
+  schedule:
+    - cron: '35 23 * * 0'
+
+permissions:
+  contents: read
+
+jobs:
+    CodeScan:
+        permissions:
+          contents: read # for actions/checkout to fetch code
+          security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+          actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
+        runs-on: ubuntu-latest
+        steps:
+            -   name: Checkout repository
+                uses: actions/checkout@v4
+            -   name: Cache files
+                uses: actions/cache@v3
+                with:
+                    path: |
+                        ~/.sonar
+                    key: ${{ runner.os }}-sonar
+                    restore-keys: ${{ runner.os }}-sonar
+            -   name: Run Analysis
+                uses: codescan-io/codescan-scanner-action@5b2e8c5683ef6a5adc8fa3b7950bb07debccce12
+                with:
+                    login: ${{ secrets.CODESCAN_AUTH_TOKEN }}
+                    organization: ${{ secrets.CODESCAN_ORGANIZATION_KEY }}
+                    projectKey: ${{ secrets.CODESCAN_PROJECT_KEY }}
+            -   name: Upload SARIF file
+                uses: github/codeql-action/upload-sarif@v3
+                with:
+                    sarif_file: codescan.sarif
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+# lintr provides static code analysis for R.
+# It checks for adherence to a given style,
+# identifying syntax errors and possible semantic issues,
+# then reports them to you so you can take action.
+# More details at https://lintr.r-lib.org/
+
+name: lintr
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches: [ "main" ]
+  schedule:
+    - cron: '31 0 * * 5'
+
+permissions:
+  contents: read
+
+jobs:
+  lintr:
+    name: Run lintr scanning
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # for checkout to fetch code
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+      actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup R
+        uses: r-lib/actions/setup-r@4e1feaf90520ec1215d1882fdddfe3411c08e492
+
+      - name: Setup lintr
+        uses: r-lib/actions/setup-r-dependencies@4e1feaf90520ec1215d1882fdddfe3411c08e492
+        with:
+          extra-packages: lintr
+
+      - name: Run lintr
+        run: lintr::sarif_output(lintr::lint_dir("."), "lintr-results.sarif")
+        shell: Rscript {0}
+        continue-on-error: true
+
+      - name: Upload analysis results to GitHub
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: lintr-results.sarif
+          wait-for-processing: true
+
+
+  # This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+# This workflow checks out code, performs a Codacy security scan
+# and integrates the results with the
+# GitHub Advanced Security code scanning feature.  For more information on
+# the Codacy security scan action usage and parameters, see
+# https://github.com/codacy/codacy-analysis-cli-action.
+# For more information on Codacy Analysis CLI in general, see
+# https://github.com/codacy/codacy-analysis-cli.
+
+name: Codacy Security Scan
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches: [ "main" ]
+  schedule:
+    - cron: '27 16 * * 4'
+
+permissions:
+  contents: read
+
+jobs:
+  codacy-security-scan:
+    permissions:
+      contents: read # for actions/checkout to fetch code
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+      actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
+    name: Codacy Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the repository to the GitHub Actions runner
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Execute Codacy Analysis CLI and generate a SARIF output with the security issues identified during the analysis
+      - name: Run Codacy Analysis CLI
+        uses: codacy/codacy-analysis-cli-action@d840f886c4bd4edc059706d09c6a1586111c540b
+        with:
+          # Check https://github.com/codacy/codacy-analysis-cli#project-token to get your project token from your Codacy repository
+          # You can also omit the token and run the tools that support default configurations
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          verbose: true
+          output: results.sarif
+          format: sarif
+          # Adjust severity of non-security issues
+          gh-code-scanning-compat: true
+          # Force 0 exit code to allow SARIF file generation
+          # This will handover control about PR rejection to the GitHub side
+          max-allowed-issues: 2147483647
+
+      # Upload the SARIF file generated in the previous step
+      - name: Upload SARIF results file
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
+
+            - name: HashiCorp's Link Checker
+  # You may pin to the exact commit or the version.
+  # uses: hashicorp/gh-action-check-broken-links@9da9ec2d83f88fe981a856c3f03aca64e68af90c
+  uses: hashicorp/gh-action-check-broken-links@v1
+  with:
+    # The base URL that links will be resolved against
+    baseUrl: 
+    # A list of files that will be scanned for the presence of links
+    files: # optional
+    # A newline delmited list of URLs that will be ignored
+    whitelist: # optional
+          
