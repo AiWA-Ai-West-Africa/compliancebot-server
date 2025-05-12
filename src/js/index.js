@@ -5,6 +5,31 @@
  * This file acts as the main entry point for your GitHub App.
  * It listens for specific events and ensures compliance rules are enforced.
  */
+// index.js
+// AiWA ComplianceBot GitHub App using Probot
+
+const fs = require('fs'); // Node.js File System module
+const yaml = require('js-yaml'); // YAML parser
+const path = require('path'); // Node.js Path module
+
+// --- Load Global Configuration ---
+let globalConfig = {};
+try {
+  const globalConfigPath = path.join(__dirname, 'aiwa-global-config.yml'); // Assumes config is in the same directory as index.js
+  if (fs.existsSync(globalConfigPath)) {
+    globalConfig = yaml.load(fs.readFileSync(globalConfigPath, 'utf8'));
+    console.log("🤖 AiWA ComplianceBot: Global configuration loaded successfully.");
+  } else {
+    console.warn("🤖 AiWA ComplianceBot: Global configuration file (aiwa-global-config.yml) not found. Using hardcoded defaults.");
+    // You might still want a minimal hardcoded default if the file is missing
+    globalConfig = { /* ... your minimal defaultConfig from before ... */ };
+  }
+} catch (e) {
+  console.error("🤖 AiWA ComplianceBot: Error loading global configuration:", e);
+  // Fallback to a minimal hardcoded default in case of error
+  globalConfig = { /* ... your minimal defaultConfig from before ... */ };
+}
+// --- End Load Global Configuration ---
 
 const defaultConfig = {
   branchPattern: "^aiwa\\/[a-z0-9\\-]+(\\/.+)?$", // Allows aiwa/feature-name or aiwa/feature-name/sub-task
@@ -31,6 +56,64 @@ const defaultConfig = {
   - [ ] Consider adding issue and PR templates (\`.github/\`).`
 };
 
+
+
+// Your defaultConfig can now be the globalConfig or a fallback
+const defaultConfig = { // This could be a minimal fallback if globalConfig fails to load
+  branchPattern: "^aiwa\\/[a-z0-9\\-]+(\\/.+)?$",
+  branchPatternMessage: "⚠️ Branch name `%BRANCH_NAME%` does not follow AiWA's naming conventions. Please rename it to match `aiwa/feature-name` or `aiwa/type/feature-name` (e.g., `aiwa/feat/add-login`).",
+  // ... other minimal defaults ...
+};
+
+
+module.exports = (app) => {
+  app.log.info("🤖 AiWA ComplianceBot is running");
+
+  // Helper to get config
+  async function getConfig(context) {
+    // Option 1: Global config ONLY
+    // return { ...globalConfig }; // Return a copy to prevent modification
+
+    // Option 2: Global config, with per-repo override still possible
+    // This attempts to load .github/aiwa-compliance.yml from the repo,
+    // and merges it over the globalConfig. Repo config takes precedence.
+    const repoConfig = await context.config("aiwa-compliance.yml", {}); // Load repo config, empty obj if not found
+    // Simple merge (Object.assign only does a shallow merge)
+    // For deep merge, you might use a library like 'lodash.merge' or 'deepmerge'
+    // return { ...globalConfig, ...repoConfig };
+
+    // Using deepmerge for better merging of nested objects like 'ensureFiles'
+    const deepmerge = require('deepmerge'); // npm install deepmerge
+    return deepmerge(globalConfig, repoConfig);
+
+    // Option 3: If you want the repo config to entirely replace global if it exists,
+    // and only use global if repo config is not found.
+    // const repoConfig = await context.config("aiwa-compliance.yml");
+    // return repoConfig || { ...globalConfig };
+  }
+
+  // ... (rest of your app.on event handlers remain the same)
+  // They will now use `await getConfig(context)` which incorporates the global config
+
+  // Example:
+  app.on("pull_request.opened", async (context) => {
+    const config = await getConfig(context); // This now gets the merged or global config
+    const branchName = context.payload.pull_request.head.ref;
+    const branchPattern = new RegExp(config.branchPattern); // Uses config from getConfig
+
+    if (!branchPattern.test(branchName)) {
+      const message = config.branchPatternMessage.replace("%BRANCH_NAME%", branchName);
+      await context.octokit.issues.createComment(context.issue({ body: message }));
+    }
+  });
+
+  // ... (rest of your event handlers) ...
+
+  app.onError(async (error) => {
+    app.log.error("An uncaught error occurred in the Probot app:");
+    app.log.error(error);
+  });
+};
 module.exports = (app) => {
   app.log.info("🤖 AiWA ComplianceBot is running");
 
