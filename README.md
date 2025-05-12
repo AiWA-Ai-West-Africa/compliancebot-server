@@ -1,12 +1,8 @@
 ![AiWA Logo md](https://github.com/user-attachments/assets/956e5d68-122c-4d83-a59c-eb47e99c2025)
 
-# Welcome to your organization's demo respository
-This code repository (or "repo") is designed to demonstrate the best GitHub has to offer with the least amount of noise.
+# AiWA ComplianceBot
 
-The repo includes an `index.html` file (so it can render a web page), two GitHub Actions workflows, and a CSS stylesheet dependency.
-
-
----
+AiWA ComplianceBot ensures all AiWA repositories follow secure, standardized GitHub practices — including Dependabot setup, branch protections, secrets usage, and license enforcement.
 
 
 ## License & Access
@@ -20,12 +16,22 @@ By accessing or interacting with this repository, you acknowledge and agree to t
 - [LICENSE.md](./LICENSE.md) – Legal terms of access and enforcement jurisdiction  
 - [TERMS.md](./TERMS.md) – Project-specific ethical and operational conditions  
 - [REPOSITORY_GOVERNANCE_POLICY.md](./REPOSITORY_GOVERNANCE_POLICY.md) – Internal governance and contributor rules
+- These documents are under a CC0-1.0 license. Note that CC0-1.0 does not grant any trademark permissions.
 
 ---
 
+## API & Webhooks
+
+**Homepage URL:**
+https://aiwestafrica.com/compliancebot
+
+**Callback URL:**
+https://aiwestafrica.com/github/callback
+
+---
 
 For questions, formal access requests, or legal inquiries, contact:  
 📧 legal@aiwestafrica.com | 📧 support@aiwestafrica.com
 
-
+These documents are under a CC0-1.0 license. Note that CC0-1.0 does not grant any trademark permissions.
 
