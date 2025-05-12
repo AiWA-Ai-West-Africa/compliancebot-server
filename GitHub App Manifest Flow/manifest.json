@@ -2,18 +2,20 @@
   "name": "AiWA ComplianceBot",
   "url": "https://aiwestafrica.com/compliancebot",
   "hook_attributes": {
-    "url": "https://aiwestafrica.com/github/callback"
+    "url": "https://aiwestafrica.com/github/webhook"
   },
   "redirect_url": "https://aiwestafrica.com/github/callback",
+  "description": "Ensures compliance with AiWA's coding, commit, and branch policies.",
   "public": false,
   "default_permissions": {
     "contents": "write",
-    "issues": "write",
     "metadata": "read",
+    "issues": "write",
     "pull_requests": "write"
   },
   "default_events": [
     "pull_request",
+    "push",
     "repository",
     "installation",
     "installation_repositories"
