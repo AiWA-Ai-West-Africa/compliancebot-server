@@ -1,4 +1,5 @@
-![AiWA Logo md](https://github.com/user-attachments/assets/956e5d68-122c-4d83-a59c-eb47e99c2025)
+![AiWA Logo](https://github.com/user-attachments/assets/fc957c5e-c76f-4cc8-b07c-c41a905a7c31)
+
 
 # AiWA ComplianceBot
 
